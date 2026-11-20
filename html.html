@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+  <title>VideoShare - Watch</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              red: '#FF334B',
+              crimson: '#E50914',
+              orange: '#FF5E3A',
+              dark: '#0D0D11',
+              card: '#16161E',
+              cardBorder: '#252533',
+              tagBg: '#1F202B'
+            }
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="bg-[#0D0D11] text-slate-100 font-sans pb-10 antialiased selection:bg-brand-red selection:text-white">
+
+  <!-- Top Header (Clean: Logo + Search + Admin Add Embed) -->
+  <header class="sticky top-0 z-40 bg-[#0D0D11]/95 backdrop-blur-md border-b border-brand-cardBorder/60 px-3.5 py-2.5 flex items-center justify-between">
+    <div onclick="resetFilters()" class="flex items-center space-x-2 cursor-pointer">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-red-500 flex items-center justify-center shadow-lg shadow-red-500/20 text-lg">
+        🦊
+      </div>
+      <div class="flex items-center tracking-tight font-black text-lg">
+        <span class="text-brand-red">VIDEO</span><span class="text-white">SHARE</span>
+      </div>
+    </div>
+
+    <div class="flex items-center space-x-2.5">
+      <!-- Search Toggle -->
+      <button onclick="toggleSearch()" aria-label="Search" class="p-2 text-gray-300 hover:text-white bg-[#181822] border border-brand-cardBorder rounded-full active:scale-95 transition" type="button">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" x2="16.65" y1="21" y2="16.65"></line>
+        </svg>
+      </button>
+
+      <!-- Admin Add Video Embed Button -->
+      <button onclick="openAddModal()" class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-brand-red to-brand-orange text-white text-xs font-bold shadow-lg shadow-brand-red/25 active:scale-95 transition" type="button">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <line x1="12" x2="12" y1="5" y2="19"></line>
+          <line x1="5" x2="19" y1="12" y2="12"></line>
+        </svg>
+        <span>Add Video</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Expandable Search Bar -->
+  <div id="search-bar-wrapper" class="hidden px-3.5 py-2 bg-[#121218] border-b border-brand-cardBorder">
+    <div class="relative flex items-center">
+      <input id="search-input" oninput="handleSearch(this.value)" type="text" placeholder="Search videos, channels, or tags..." class="w-full bg-[#1C1D26] text-xs text-white placeholder-gray-500 rounded-full pl-3.5 pr-8 py-2 border border-brand-cardBorder focus:border-brand-red focus:outline-none" />
+      <button onclick="clearSearch()" class="absolute right-2.5 text-gray-400 hover:text-white text-xs font-bold">✕</button>
+    </div>
+  </div>
+
+  <!-- Category Filter Chips -->
+  <nav id="category-nav" aria-label="Categories" class="flex items-center space-x-2 px-3.5 py-2.5 overflow-x-auto no-scrollbar border-b border-brand-cardBorder/40 text-xs font-medium bg-[#111116]">
+    <button onclick="filterByCategory('All')" data-cat="All" class="cat-chip px-3.5 py-1.5 rounded-full bg-white text-black font-semibold whitespace-nowrap transition">All</button>
+    <button onclick="filterByCategory('Animation')" data-cat="Animation" class="cat-chip px-3 py-1.5 rounded-full bg-[#1C1C24] text-gray-300 whitespace-nowrap border border-brand-cardBorder transition">Animation</button>
+    <button onclick="filterByCategory('3D')" data-cat="3D" class="cat-chip px-3 py-1.5 rounded-full bg-[#1C1C24] text-gray-300 whitespace-nowrap border border-brand-cardBorder transition">3D</button>
+    <button onclick="filterByCategory('Sci-Fi')" data-cat="Sci-Fi" class="cat-chip px-3 py-1.5 rounded-full bg-[#1C1C24] text-gray-300 whitespace-nowrap border border-brand-cardBorder transition">Sci-Fi</button>
+    <button onclick="filterByCategory('Gaming')" data-cat="Gaming" class="cat-chip px-3 py-1.5 rounded-full bg-[#1C1C24] text-gray-300 whitespace-nowrap border border-brand-cardBorder transition">Gaming</button>
+    <button onclick="filterByCategory('Movies')" data-cat="Movies" class="cat-chip px-3 py-1.5 rounded-full bg-[#1C1C24] text-gray-300 whitespace-nowrap border border-brand-cardBorder transition">Movies</button>
+  </nav>
+
+  <!-- Main Embedded Video Player -->
+  <section class="relative w-full aspect-video bg-black overflow-hidden border-b border-brand-cardBorder/60">
+    <iframe
+      id="main-embed-player"
+      class="w-full h-full border-0 hidden"
+      src=""
+      frameborder="0"
+      scrolling="0"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+      allowfullscreen>
+    </iframe>
+    <div id="empty-player-placeholder" class="w-full h-full flex flex-col items-center justify-center text-center p-4 bg-[#121218]">
+      <p class="text-sm font-bold text-gray-200 mb-1">No Video Selected</p>
+      <p class="text-xs text-gray-400 mb-3">Admin "Add Video" button theke notun video embed korun.</p>
+      <button onclick="openAddModal()" class="px-4 py-1.5 rounded-full bg-brand-red text-white text-xs font-bold shadow-lg shadow-brand-red/25">+ Add Video</button>
+    </div>
+  </section>
+
+  <!-- Video Details & Channel -->
+  <section id="video-details-section" class="px-3.5 pt-3 pb-2 hidden">
+    <div class="mb-2">
+      <h1 id="video-title" class="text-base font-bold text-white tracking-tight leading-snug"></h1>
+      <div id="video-hashtags" class="flex flex-wrap items-center gap-1.5 text-[11px] text-brand-red font-medium mt-1"></div>
+    </div>
+
+    <!-- Channel Row -->
+    <div class="flex items-center justify-between py-2 border-y border-brand-cardBorder/60 my-2">
+      <div class="flex items-center space-x-2.5">
+        <div class="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-brand-red/80 bg-slate-800 flex items-center justify-center font-bold text-sm text-white">
+          <img id="channel-avatar" alt="Channel Avatar" class="w-full h-full object-cover" src="" />
+        </div>
+        <div>
+          <div class="flex items-center space-x-1">
+            <span id="channel-name" class="text-sm font-bold text-white"></span>
+            <svg class="w-3.5 h-3.5 text-brand-red fill-current" viewBox="0 0 20 20">
+              <path clip-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" fill-rule="evenodd"></path>
+            </svg>
+          </div>
+          <span id="channel-subs" class="text-[11px] text-gray-400"></span>
+        </div>
+      </div>
+
+      <button id="subscribe-btn" onclick="toggleSubscribe()" class="px-4 py-1.5 bg-brand-crimson hover:bg-red-600 active:scale-95 text-white text-xs font-bold rounded-full shadow-md shadow-brand-crimson/30 transition" type="button">
+        Subscribe
+      </button>
+    </div>
+  </section>
+
+  <!-- Action Bar (Like / Dislike / Favorite - Share Removed) -->
+  <section id="video-actions-section" class="px-3.5 py-1.5 overflow-x-auto no-scrollbar hidden">
+    <div class="flex items-center space-x-2 text-xs font-semibold">
+      <div class="inline-flex items-center rounded-full bg-[#181822] border border-brand-cardBorder text-gray-200">
+        <button id="like-btn" onclick="toggleLike()" class="inline-flex items-center space-x-1.5 px-3 py-1.5 hover:text-white active:scale-95 border-r border-brand-cardBorder transition" type="button">
+          <svg id="like-icon" class="w-4 h-4 fill-white" viewBox="0 0 24 24">
+            <path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"></path>
+          </svg>
+          <span id="like-count" class="text-[11px] font-bold">0</span>
+        </button>
+        <button id="dislike-btn" onclick="toggleDislike()" class="inline-flex items-center px-2.5 py-1.5 hover:text-white active:scale-95 text-gray-400 transition" type="button">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+          </svg>
+          <span id="dislike-count" class="text-[10px] ml-1">0</span>
+        </button>
+      </div>
+
+      <button id="fav-btn" onclick="toggleFavorite()" class="inline-flex items-center space-x-1 px-3 py-1.5 rounded-full bg-[#181822] border border-brand-cardBorder text-gray-200 hover:text-pink-400 whitespace-nowrap active:scale-95 transition" type="button">
+        <svg id="fav-icon" class="w-4 h-4 text-gray-400 fill-current transition" viewBox="0 0 24 24">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+        </svg>
+        <span class="text-[11px]">Favorite</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Expandable Description -->
+  <section id="video-desc-section" class="px-3.5 my-2 hidden">
+    <div onclick="toggleDescription()" class="bg-[#15151D] border border-brand-cardBorder/70 rounded-xl p-3 text-xs text-gray-300 cursor-pointer">
+      <div class="flex items-center justify-between font-semibold text-white mb-1.5">
+        <div class="flex items-center space-x-2">
+          <span id="video-views"></span>
+          <span class="text-gray-500">•</span>
+          <span id="video-date" class="text-gray-400"></span>
+        </div>
+        <span id="desc-toggle-label" class="text-[11px] font-bold text-brand-red flex items-center">
+          More
+        </span>
+      </div>
+      <p id="video-description" class="text-gray-300 line-clamp-2 leading-relaxed"></p>
+    </div>
+  </section>
+
+  <!-- Up Next Recommendations Feed -->
+  <section class="px-3.5 pt-3">
+    <div class="flex items-center justify-between mb-2.5">
+      <div class="flex items-center space-x-2">
+        <h2 class="text-sm font-bold text-white">Up Next</h2>
+        <span id="queue-count" class="text-[10px] bg-brand-red/20 text-brand-red font-semibold px-1.5 py-0.5 rounded">0 Videos</span>
+      </div>
+      <button onclick="openAddModal()" class="text-[11px] font-bold text-brand-red hover:underline">+ Admin Add Embed</button>
+    </div>
+
+    <!-- Feed Sub-filters -->
+    <div class="flex items-center space-x-2 pb-2.5 overflow-x-auto no-scrollbar text-xs">
+      <button onclick="setFeedFilter('all')" data-feed="all" class="feed-pill px-3 py-1 rounded-full bg-white text-black font-semibold whitespace-nowrap">All</button>
+      <button onclick="setFeedFilter('custom')" data-feed="custom" class="feed-pill px-3 py-1 rounded-full bg-[#1A1A24] text-gray-300 border border-brand-cardBorder whitespace-nowrap">My Added Videos</button>
+      <button onclick="setFeedFilter('favorites')" data-feed="favorites" class="feed-pill px-3 py-1 rounded-full bg-[#1A1A24] text-gray-300 border border-brand-cardBorder whitespace-nowrap">Favorites</button>
+    </div>
+
+    <!-- Video List Container -->
+    <div id="recommendations-list" class="space-y-3 mt-1"></div>
+  </section>
+
+  <!-- Add Video Embed Modal (Admin Only) -->
+  <div id="add-video-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-[#16161E] border border-brand-cardBorder w-full max-w-md rounded-t-2xl sm:rounded-2xl p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-brand-cardBorder">
+        <div>
+          <h3 class="text-base font-extrabold text-white">Admin: Add Embedded Video</h3>
+          <p class="text-[11px] text-gray-400">Paste an &lt;iframe&gt; code or direct embed URL</p>
+        </div>
+        <button onclick="closeAddModal()" class="w-8 h-8 rounded-full bg-[#22222E] text-gray-300 hover:text-white flex items-center justify-center">✕</button>
+      </div>
+
+      <form onsubmit="saveNewVideo(event)" class="space-y-3.5 mt-4 text-xs">
+        <div>
+          <label class="block text-gray-300 font-semibold mb-1">Embed Code or Video Link *</label>
+          <textarea id="input-embed" oninput="previewEmbedValidation(this.value)" rows="3" required placeholder='<iframe width="640" height="360" src="https://player.abyssplayer.com/aVQmvV2D8" ...></iframe>' class="w-full bg-[#0D0D11] text-white rounded-xl p-2.5 border border-brand-cardBorder focus:border-brand-red focus:outline-none font-mono text-[11px]"></textarea>
+          <p id="embed-status" class="text-[10px] text-gray-400 mt-1">Supports AbyssPlayer, YouTube, Dailymotion, or any iframe embed URL.</p>
+        </div>
+
+        <div>
+          <label class="block text-gray-300 font-semibold mb-1">Video Title *</label>
+          <input id="input-title" type="text" required placeholder="e.g. Epic Sci-Fi Animation" class="w-full bg-[#0D0D11] text-white rounded-xl px-3 py-2 border border-brand-cardBorder focus:border-brand-red focus:outline-none" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-gray-300 font-semibold mb-1">Channel / Creator</label>
+            <input id="input-creator" type="text" placeholder="My Channel" class="w-full bg-[#0D0D11] text-white rounded-xl px-3 py-2 border border-brand-cardBorder focus:border-brand-red focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-gray-300 font-semibold mb-1">Category</label>
+            <select id="input-category" class="w-full bg-[#0D0D11] text-white rounded-xl px-3 py-2 border border-brand-cardBorder focus:border-brand-red focus:outline-none">
+              <option value="Animation">Animation</option>
+              <option value="3D">3D</option>
+              <option value="Sci-Fi">Sci-Fi</option>
+              <option value="Gaming">Gaming</option>
+              <option value="Movies">Movies</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2.5">
+          <div>
+            <label class="block text-gray-300 font-semibold mb-1">Duration</label>
+            <input id="input-duration" type="text" placeholder="10:25" class="w-full bg-[#0D0D11] text-white rounded-xl px-3 py-2 border border-brand-cardBorder focus:border-brand-red focus:outline-none" />
+          </div>
+          <div>
+            <label class="block text-gray-300 font-semibold mb-1">Hashtags</label>
+            <input id="input-tags" type="text" placeholder="#Animation #HD" class="w-full bg-[#0D0D11] text-white rounded-xl px-3 py-2 border border-brand-cardBorder focus:border-brand-red focus:outline-none" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-gray-300 font-semibold mb-1">Thumbnail Image URL (Optional)</label>
+          <input id="input-thumb" type="url" placeholder="https://example.com/thumb.jpg" class="w-full bg-[#0D0D11] text-white rounded-xl px-3 py-2 border border-brand-cardBorder focus:border-brand-red focus:outline-none" />
+        </div>
+
+        <div>
+          <label class="block text-gray-300 font-semibold mb-1">Description</label>
+          <textarea id="input-desc" rows="2" placeholder="Write something about this video..." class="w-full bg-[#0D0D11] text-white rounded-xl p-2.5 border border-brand-cardBorder focus:border-brand-red focus:outline-none"></textarea>
+        </div>
+
+        <div class="pt-2 flex items-center space-x-2.5">
+          <button type="button" onclick="closeAddModal()" class="w-1/3 py-2.5 rounded-full bg-[#22222E] text-gray-300 font-bold">Cancel</button>
+          <button type="submit" class="w-2/3 py-2.5 rounded-full bg-gradient-to-r from-brand-red to-brand-orange text-white font-bold shadow-lg shadow-brand-red/30">Add & Play Now</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden bg-[#1F202B] text-white text-xs font-semibold px-4 py-2.5 rounded-full border border-brand-red/50 shadow-xl">
+    Notification
+  </div>
+
+  <script>
+    const ADMIN_PASSWORD = "018688747";
+    const DEFAULT_THUMB = "https://lh3.googleusercontent.com/aida-public/AB6AXuCYU1tgUo1HVlvVKqbjPyvMdEu1QeD-0DJgdlc_NZizO1MMTT4Au1CbMtcXze7xApFcL3m9n1NnHv1svw-LtrEfXD1RNN9gZO6gwlAkYL9A_byetE3dg6nLfwDdxug6S8ZL0gTFh8XUE3l1phEQNTJ3HMvh33wfsKnlOKBiUK-VRA8ZZKbG8UQKhggHEEWEGjUDuldumQAHrftHBlmsLNzSPKOvdKoaU7YOKPR0QWGNzGXb4i0yUsUR";
+
+    // Demo videos removed: only custom videos stored in vs_custom_videos will be loaded
+    let videos = JSON.parse(localStorage.getItem("vs_custom_videos")) || [];
+    let currentVideoId = videos.length > 0 ? videos[0].id : null;
+    let activeCategory = "All";
+    let activeFeedFilter = "all";
+    let searchQuery = "";
+    let isAdminUnlocked = false;
+
+    let userState = JSON.parse(localStorage.getItem("vs_user_state")) || {
+      likes: {},
+      dislikes: {},
+      favorites: {},
+      subscriptions: {}
+    };
+
+    function saveState() {
+      localStorage.setItem("vs_custom_videos", JSON.stringify(videos));
+      localStorage.setItem("vs_user_state", JSON.stringify(userState));
+    }
+
+    function extractEmbedUrl(input) {
+      const trimmed = input.trim();
+      const srcMatch = trimmed.match(/src=["']([^"']+)["']/i);
+      if (srcMatch && srcMatch[1]) {
+        return srcMatch[1];
+      }
+      const ytWatch = trimmed.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      if (ytWatch && ytWatch[1]) {
+        return `https://www.youtube.com/embed/${ytWatch[1]}`;
+      }
+      if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+        return trimmed;
+      }
+      return null;
+    }
+
+    function previewEmbedValidation(val) {
+      const statusEl = document.getElementById("embed-status");
+      const url = extractEmbedUrl(val);
+      if (!val.trim()) {
+        statusEl.textContent = "Supports AbyssPlayer, YouTube, Dailymotion, or any iframe embed URL.";
+        statusEl.className = "text-[10px] text-gray-400 mt-1";
+      } else if (url) {
+        statusEl.textContent = "✓ Valid embed source detected: " + url;
+        statusEl.className = "text-[10px] text-emerald-400 mt-1 font-medium truncate";
+      } else {
+        statusEl.textContent = "✕ Please paste a valid <iframe> tag or https:// embed link.";
+        statusEl.className = "text-[10px] text-brand-red mt-1";
+      }
+    }
+
+    function loadVideo(id) {
+      const player = document.getElementById("main-embed-player");
+      const placeholder = document.getElementById("empty-player-placeholder");
+      const detailsSec = document.getElementById("video-details-section");
+      const actionsSec = document.getElementById("video-actions-section");
+      const descSec = document.getElementById("video-desc-section");
+
+      const vid = videos.find(v => v.id === id) || videos[0];
+
+      if (!vid) {
+        currentVideoId = null;
+        player.src = "";
+        player.classList.add("hidden");
+        placeholder.classList.remove("hidden");
+        detailsSec.classList.add("hidden");
+        actionsSec.classList.add("hidden");
+        descSec.classList.add("hidden");
+        renderRecommendations();
+        return;
+      }
+
+      currentVideoId = vid.id;
+      player.classList.remove("hidden");
+      placeholder.classList.add("hidden");
+      detailsSec.classList.remove("hidden");
+      actionsSec.classList.remove("hidden");
+      descSec.classList.remove("hidden");
+
+      player.src = vid.embedUrl;
+      document.getElementById("video-title").textContent = vid.title;
+      document.getElementById("channel-name").textContent = vid.creator;
+      document.getElementById("channel-subs").textContent = vid.subs || "Creator";
+      document.getElementById("channel-avatar").src = vid.thumbnail || DEFAULT_THUMB;
+      document.getElementById("video-views").textContent = `${vid.views} views`;
+      document.getElementById("video-date").textContent = vid.date;
+      document.getElementById("video-description").textContent = vid.description;
+
+      const tagsContainer = document.getElementById("video-hashtags");
+      tagsContainer.innerHTML = (vid.hashtags || []).map(tag => `<span>${tag}</span>`).join("");
+
+      updateInteractionUI();
+      renderRecommendations();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function updateInteractionUI() {
+      const vid = videos.find(v => v.id === currentVideoId);
+      if (!vid) return;
+
+      const isLiked = !!userState.likes[vid.id];
+      const isDisliked = !!userState.dislikes[vid.id];
+      const isFav = !!userState.favorites[vid.id];
+      const isSub = !!userState.subscriptions[vid.creator];
+
+      document.getElementById("like-count").textContent = (vid.likes + (isLiked ? 1 : 0)).toLocaleString();
+      document.getElementById("dislike-count").textContent = (vid.dislikes + (isDisliked ? 1 : 0)).toLocaleString();
+
+      document.getElementById("like-icon").classList.toggle("fill-brand-red", isLiked);
+      document.getElementById("like-icon").classList.toggle("fill-white", !isLiked);
+
+      const favIcon = document.getElementById("fav-icon");
+      favIcon.classList.toggle("text-pink-500", isFav);
+      favIcon.classList.toggle("text-gray-400", !isFav);
+
+      const subBtn = document.getElementById("subscribe-btn");
+      if (isSub) {
+        subBtn.textContent = "Subscribed";
+        subBtn.className = "px-4 py-1.5 bg-[#252533] text-gray-200 text-xs font-bold rounded-full transition";
+      } else {
+        subBtn.textContent = "Subscribe";
+        subBtn.className = "px-4 py-1.5 bg-brand-crimson hover:bg-red-600 text-white text-xs font-bold rounded-full shadow-md shadow-brand-crimson/30 transition";
+      }
+    }
+
+    function toggleLike() {
+      if (!currentVideoId) return;
+      userState.likes[currentVideoId] = !userState.likes[currentVideoId];
+      if (userState.likes[currentVideoId]) userState.dislikes[currentVideoId] = false;
+      saveState();
+      updateInteractionUI();
+    }
+
+    function toggleDislike() {
+      if (!currentVideoId) return;
+      userState.dislikes[currentVideoId] = !userState.dislikes[currentVideoId];
+      if (userState.dislikes[currentVideoId]) userState.likes[currentVideoId] = false;
+      saveState();
+      updateInteractionUI();
+    }
+
+    function toggleFavorite() {
+      if (!currentVideoId) return;
+      userState.favorites[currentVideoId] = !userState.favorites[currentVideoId];
+      saveState();
+      updateInteractionUI();
+      renderRecommendations();
+      showToast(userState.favorites[currentVideoId] ? "Added to Favorites" : "Removed from Favorites");
+    }
+
+    function toggleSubscribe() {
+      const vid = videos.find(v => v.id === currentVideoId);
+      if (!vid) return;
+      userState.subscriptions[vid.creator] = !userState.subscriptions[vid.creator];
+      saveState();
+      updateInteractionUI();
+      showToast(userState.subscriptions[vid.creator] ? `Subscribed to ${vid.creator}` : "Unsubscribed");
+    }
+
+    function toggleDescription() {
+      const desc = document.getElementById("video-description");
+      const label = document.getElementById("desc-toggle-label");
+      const isClamped = desc.classList.contains("line-clamp-2");
+      desc.classList.toggle("line-clamp-2", !isClamped);
+      label.textContent = isClamped ? "Show less" : "More";
+    }
+
+    function renderRecommendations() {
+      const list = document.getElementById("recommendations-list");
+      let filtered = videos.filter(v => {
+        const matchesCat = activeCategory === "All" || v.category === activeCategory;
+        const matchesFeed =
+          activeFeedFilter === "all" ||
+          (activeFeedFilter === "custom" && v.isCustom) ||
+          (activeFeedFilter === "favorites" && userState.favorites[v.id]);
+        const matchesSearch =
+          !searchQuery ||
+          v.title.toLowerCase().includes(searchQuery) ||
+          v.creator.toLowerCase().includes(searchQuery) ||
+          (v.hashtags || []).some(t => t.toLowerCase().includes(searchQuery));
+        return matchesCat && matchesFeed && matchesSearch;
+      });
+
+      document.getElementById("queue-count").textContent = `${filtered.length} Video${filtered.length === 1 ? "" : "s"}`;
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="text-center py-8 text-xs text-gray-400 bg-[#13131A] rounded-xl border border-brand-cardBorder/60">No videos added yet.</div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(v => {
+        const isPlaying = v.id === currentVideoId;
+        return `
+          <article onclick="loadVideo('${v.id}')" class="flex space-x-3 bg-[#13131A] p-2 rounded-xl border ${isPlaying ? 'border-brand-red' : 'border-brand-cardBorder/60'} hover:border-brand-red/50 transition cursor-pointer relative">
+            <div class="relative w-36 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-slate-800">
+              <img alt="${v.title}" class="w-full h-full object-cover" src="${v.thumbnail || DEFAULT_THUMB}" />
+              ${isPlaying ? '<span class="absolute top-1 left-1 bg-brand-red text-white font-bold text-[9px] px-1.5 py-0.5 rounded">PLAYING</span>' : '<span class="absolute top-1 left-1 bg-black/75 text-white font-bold text-[9px] px-1 rounded">EMBED</span>'}
+              <span class="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-mono px-1 rounded">${v.duration || 'HD'}</span>
+            </div>
+            <div class="flex flex-col justify-between py-0.5 min-w-0 flex-1">
+              <div>
+                <h3 class="text-xs font-semibold text-white leading-tight line-clamp-2 pr-5">${v.title}</h3>
+                <p class="text-[11px] text-gray-400 mt-1 flex items-center">${v.creator}</p>
+              </div>
+              <span class="text-[10px] text-gray-500">${v.views} views • ${v.date}</span>
+            </div>
+            <button onclick="deleteVideo(event, '${v.id}')" title="Delete video" class="absolute top-2 right-2 text-gray-500 hover:text-brand-red text-xs p-1">✕</button>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function deleteVideo(event, id) {
+      event.stopPropagation();
+      if (!isAdminUnlocked) {
+        const pass = prompt("Enter Admin Password to delete:");
+        if (pass !== ADMIN_PASSWORD) {
+          showToast("Wrong admin password!");
+          return;
+        }
+        isAdminUnlocked = true;
+      }
+
+      videos = videos.filter(v => v.id !== id);
+      saveState();
+      if (currentVideoId === id) {
+        loadVideo(videos.length > 0 ? videos[0].id : null);
+      } else {
+        renderRecommendations();
+      }
+      showToast("Video removed");
+    }
+
+    function filterByCategory(cat) {
+      activeCategory = cat;
+      document.querySelectorAll(".cat-chip").forEach(btn => {
+        if (btn.dataset.cat === cat) {
+          btn.className = "cat-chip px-3.5 py-1.5 rounded-full bg-white text-black font-semibold whitespace-nowrap transition";
+        } else {
+          btn.className = "cat-chip px-3 py-1.5 rounded-full bg-[#1C1C24] text-gray-300 whitespace-nowrap border border-brand-cardBorder transition";
+        }
+      });
+      renderRecommendations();
+    }
+
+    function setFeedFilter(filter) {
+      activeFeedFilter = filter;
+      document.querySelectorAll(".feed-pill").forEach(btn => {
+        if (btn.dataset.feed === filter) {
+          btn.className = "feed-pill px-3 py-1 rounded-full bg-white text-black font-semibold whitespace-nowrap";
+        } else {
+          btn.className = "feed-pill px-3 py-1 rounded-full bg-[#1A1A24] text-gray-300 border border-brand-cardBorder whitespace-nowrap";
+        }
+      });
+      renderRecommendations();
+    }
+
+    function toggleSearch() {
+      const bar = document.getElementById("search-bar-wrapper");
+      bar.classList.toggle("hidden");
+      if (!bar.classList.contains("hidden")) {
+        document.getElementById("search-input").focus();
+      }
+    }
+
+    function handleSearch(val) {
+      searchQuery = val.trim().toLowerCase();
+      renderRecommendations();
+    }
+
+    function clearSearch() {
+      document.getElementById("search-input").value = "";
+      searchQuery = "";
+      document.getElementById("search-bar-wrapper").classList.add("hidden");
+      renderRecommendations();
+    }
+
+    function resetFilters() {
+      filterByCategory("All");
+      setFeedFilter("all");
+      clearSearch();
+    }
+
+    function openAddModal() {
+      if (!isAdminUnlocked) {
+        const enteredPass = prompt("Admin Password din:");
+        if (enteredPass === null) return;
+        if (enteredPass !== ADMIN_PASSWORD) {
+          showToast("Incorrect admin password! Shudhu admin link add korte parbe.");
+          return;
+        }
+        isAdminUnlocked = true;
+        showToast("Admin access unlocked!");
+      }
+      document.getElementById("add-video-modal").classList.remove("hidden");
+    }
+
+    function closeAddModal() {
+      document.getElementById("add-video-modal").classList.add("hidden");
+    }
+
+    function saveNewVideo(e) {
+      e.preventDefault();
+      if (!isAdminUnlocked) {
+        showToast("Admin access required!");
+        return;
+      }
+
+      const rawEmbed = document.getElementById("input-embed").value;
+      const cleanUrl = extractEmbedUrl(rawEmbed);
+
+      if (!cleanUrl) {
+        showToast("Invalid iframe or video link!");
+        return;
+      }
+
+      const title = document.getElementById("input-title").value.trim();
+      const creator = document.getElementById("input-creator").value.trim() || "My Channel";
+      const category = document.getElementById("input-category").value;
+      const duration = document.getElementById("input-duration").value.trim() || "HD";
+      const rawTags = document.getElementById("input-tags").value.trim();
+      const thumbnail = document.getElementById("input-thumb").value.trim() || DEFAULT_THUMB;
+      const description = document.getElementById("input-desc").value.trim() || "Embedded video added to VideoShare.";
+
+      const hashtags = rawTags
+        ? rawTags.split(/\s+/).map(t => (t.startsWith("#") ? t : `#${t}`))
+        : [`#${category}`, "#Embed"];
+
+      const newVideo = {
+        id: "vid-" + Date.now(),
+        title,
+        embedUrl: cleanUrl,
+        creator,
+        subs: "Creator",
+        category,
+        hashtags,
+        views: "1",
+        date: "Just now",
+        duration,
+        likes: 1,
+        dislikes: 0,
+        thumbnail,
+        description,
+        isCustom: true
+      };
+
+      videos.unshift(newVideo);
+      saveState();
+      e.target.reset();
+      previewEmbedValidation("");
+      closeAddModal();
+      loadVideo(newVideo.id);
+      showToast("Video added & playing!");
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.classList.remove("hidden");
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => toast.classList.add("hidden"), 2400);
+    }
+
+    loadVideo(currentVideoId);
+  </script>
+</body>
+</html>
