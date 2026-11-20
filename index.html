@@ -29,13 +29,8 @@
     }
   </script>
   <style>
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .line-clamp-2 {
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -43,10 +38,15 @@
       overflow: hidden;
     }
   </style>
+
+  <!-- ========================================== -->
+  <!-- YOUR POP-UNDER / SOCIAL BAR AD SCRIPT HERE -->
+  <!-- (Adsterra / Monetag এর Popunder কোড এখানে পেস্ট করুন) -->
+  <!-- ========================================== -->
 </head>
 <body class="bg-[#0D0D11] text-slate-100 font-sans pb-10 antialiased selection:bg-brand-red selection:text-white">
 
-  <!-- Top Header (Clean: Logo + Search + Admin Add Embed) -->
+  <!-- Top Header -->
   <header class="sticky top-0 z-40 bg-[#0D0D11]/95 backdrop-blur-md border-b border-brand-cardBorder/60 px-3.5 py-2.5 flex items-center justify-between">
     <div onclick="resetFilters()" class="flex items-center space-x-2 cursor-pointer">
       <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-red-500 flex items-center justify-center shadow-lg shadow-red-500/20 text-lg">
@@ -58,7 +58,6 @@
     </div>
 
     <div class="flex items-center space-x-2.5">
-      <!-- Search Toggle -->
       <button onclick="toggleSearch()" aria-label="Search" class="p-2 text-gray-300 hover:text-white bg-[#181822] border border-brand-cardBorder rounded-full active:scale-95 transition" type="button">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
           <circle cx="11" cy="11" r="8"></circle>
@@ -66,7 +65,6 @@
         </svg>
       </button>
 
-      <!-- Admin Add Video Embed Button -->
       <button onclick="openAddModal()" class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-brand-red to-brand-orange text-white text-xs font-bold shadow-lg shadow-brand-red/25 active:scale-95 transition" type="button">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
           <line x1="12" x2="12" y1="5" y2="19"></line>
@@ -95,17 +93,32 @@
     <button onclick="filterByCategory('Movies')" data-cat="Movies" class="cat-chip px-3 py-1.5 rounded-full bg-[#1C1C24] text-gray-300 whitespace-nowrap border border-brand-cardBorder transition">Movies</button>
   </nav>
 
-  <!-- Main Embedded Video Player -->
+  <!-- ========================================== -->
+  <!-- TOP BANNER AD SLOT (320x50 / Responsive)   -->
+  <!-- ========================================== -->
+  <div id="top-banner-ad" class="w-full flex justify-center items-center py-2 bg-[#0A0A0E] border-b border-brand-cardBorder/40">
+    <!-- আপনার Banner Ad এর <script> কোড নিচের div-এর ভেতর বসান -->
+    <div class="w-[320px] h-[50px] bg-[#16161E] border border-dashed border-gray-700 rounded flex items-center justify-center text-[10px] text-gray-500">
+      Top Banner Ad (320x50) - Paste Ad Script Here
+    </div>
+  </div>
+
+  <!-- Main Embedded Video Player (Sandboxed to block 3rd-party redirects) -->
   <section class="relative w-full aspect-video bg-black overflow-hidden border-b border-brand-cardBorder/60">
+    <!-- Invisible Click Shield for YOUR Custom Pop-up Ad (Triggers once per video) -->
+    <div id="custom-popup-shield" onclick="triggerMyPopupAd()" class="hidden absolute inset-0 z-20 cursor-pointer bg-transparent"></div>
+
     <iframe
       id="main-embed-player"
       class="w-full h-full border-0 hidden"
       src=""
+      sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
       frameborder="0"
       scrolling="0"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
       allowfullscreen>
     </iframe>
+
     <div id="empty-player-placeholder" class="w-full h-full flex flex-col items-center justify-center text-center p-4 bg-[#121218]">
       <p class="text-sm font-bold text-gray-200 mb-1">No Video Selected</p>
       <p class="text-xs text-gray-400 mb-3">Admin "Add Video" button theke notun video embed korun.</p>
@@ -120,7 +133,6 @@
       <div id="video-hashtags" class="flex flex-wrap items-center gap-1.5 text-[11px] text-brand-red font-medium mt-1"></div>
     </div>
 
-    <!-- Channel Row -->
     <div class="flex items-center justify-between py-2 border-y border-brand-cardBorder/60 my-2">
       <div class="flex items-center space-x-2.5">
         <div class="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-brand-red/80 bg-slate-800 flex items-center justify-center font-bold text-sm text-white">
@@ -143,7 +155,7 @@
     </div>
   </section>
 
-  <!-- Action Bar (Like / Dislike / Favorite - Share Removed) -->
+  <!-- Action Bar (Like / Dislike / Favorite) -->
   <section id="video-actions-section" class="px-3.5 py-1.5 overflow-x-auto no-scrollbar hidden">
     <div class="flex items-center space-x-2 text-xs font-semibold">
       <div class="inline-flex items-center rounded-full bg-[#181822] border border-brand-cardBorder text-gray-200">
@@ -179,16 +191,24 @@
           <span class="text-gray-500">•</span>
           <span id="video-date" class="text-gray-400"></span>
         </div>
-        <span id="desc-toggle-label" class="text-[11px] font-bold text-brand-red flex items-center">
-          More
-        </span>
+        <span id="desc-toggle-label" class="text-[11px] font-bold text-brand-red flex items-center">More</span>
       </div>
       <p id="video-description" class="text-gray-300 line-clamp-2 leading-relaxed"></p>
     </div>
   </section>
 
+  <!-- ========================================== -->
+  <!-- MIDDLE BANNER AD SLOT (300x250 / 320x100)  -->
+  <!-- ========================================== -->
+  <div id="middle-banner-ad" class="px-3.5 my-3 flex justify-center">
+    <!-- আপনার 300x250 বা 320x100 Banner Ad এর <script> কোড নিচের div-এর ভেতর বসান -->
+    <div class="w-full max-w-[336px] h-[90px] bg-[#16161E] border border-dashed border-gray-700 rounded-xl flex items-center justify-center text-[11px] text-gray-500">
+      Middle Banner Ad (320x100 / 300x250) - Paste Ad Script Here
+    </div>
+  </div>
+
   <!-- Up Next Recommendations Feed -->
-  <section class="px-3.5 pt-3">
+  <section class="px-3.5 pt-2">
     <div class="flex items-center justify-between mb-2.5">
       <div class="flex items-center space-x-2">
         <h2 class="text-sm font-bold text-white">Up Next</h2>
@@ -197,14 +217,12 @@
       <button onclick="openAddModal()" class="text-[11px] font-bold text-brand-red hover:underline">+ Admin Add Embed</button>
     </div>
 
-    <!-- Feed Sub-filters -->
     <div class="flex items-center space-x-2 pb-2.5 overflow-x-auto no-scrollbar text-xs">
       <button onclick="setFeedFilter('all')" data-feed="all" class="feed-pill px-3 py-1 rounded-full bg-white text-black font-semibold whitespace-nowrap">All</button>
       <button onclick="setFeedFilter('custom')" data-feed="custom" class="feed-pill px-3 py-1 rounded-full bg-[#1A1A24] text-gray-300 border border-brand-cardBorder whitespace-nowrap">My Added Videos</button>
       <button onclick="setFeedFilter('favorites')" data-feed="favorites" class="feed-pill px-3 py-1 rounded-full bg-[#1A1A24] text-gray-300 border border-brand-cardBorder whitespace-nowrap">Favorites</button>
     </div>
 
-    <!-- Video List Container -->
     <div id="recommendations-list" class="space-y-3 mt-1"></div>
   </section>
 
@@ -286,7 +304,11 @@
     const ADMIN_PASSWORD = "018688747";
     const DEFAULT_THUMB = "https://lh3.googleusercontent.com/aida-public/AB6AXuCYU1tgUo1HVlvVKqbjPyvMdEu1QeD-0DJgdlc_NZizO1MMTT4Au1CbMtcXze7xApFcL3m9n1NnHv1svw-LtrEfXD1RNN9gZO6gwlAkYL9A_byetE3dg6nLfwDdxug6S8ZL0gTFh8XUE3l1phEQNTJ3HMvh33wfsKnlOKBiUK-VRA8ZZKbG8UQKhggHEEWEGjUDuldumQAHrftHBlmsLNzSPKOvdKoaU7YOKPR0QWGNzGXb4i0yUsUR";
 
-    // Demo videos removed: only custom videos stored in vs_custom_videos will be loaded
+    // ====================================================
+    // YOUR DIRECT POP-UP AD LINK (Adsterra / Monetag Link)
+    // ====================================================
+    const MY_POPUP_AD_URL = ""; // এখানে আপনার Direct Ad Link দিন (যেমন: "https://your-ad-link.com")
+
     let videos = JSON.parse(localStorage.getItem("vs_custom_videos")) || [];
     let currentVideoId = videos.length > 0 ? videos[0].id : null;
     let activeCategory = "All";
@@ -301,6 +323,15 @@
       subscriptions: {}
     };
 
+    // আপনার নিজস্ব Pop-up Ad ওপেন করার ফাংশন (ভিডিওতে প্রথম ক্লিকে একবার ওপেন হবে)
+    function triggerMyPopupAd() {
+      const shield = document.getElementById("custom-popup-shield");
+      shield.classList.add("hidden"); // ক্লিক করার পর শিল্ড সরে যাবে যাতে ইউজার ভিডিও কন্ট্রোল করতে পারে
+      if (MY_POPUP_AD_URL && MY_POPUP_AD_URL.startsWith("http")) {
+        window.open(MY_POPUP_AD_URL, "_blank", "noopener,noreferrer");
+      }
+    }
+
     function saveState() {
       localStorage.setItem("vs_custom_videos", JSON.stringify(videos));
       localStorage.setItem("vs_user_state", JSON.stringify(userState));
@@ -309,16 +340,12 @@
     function extractEmbedUrl(input) {
       const trimmed = input.trim();
       const srcMatch = trimmed.match(/src=["']([^"']+)["']/i);
-      if (srcMatch && srcMatch[1]) {
-        return srcMatch[1];
-      }
+      if (srcMatch && srcMatch[1]) return srcMatch[1];
+
       const ytWatch = trimmed.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-      if (ytWatch && ytWatch[1]) {
-        return `https://www.youtube.com/embed/${ytWatch[1]}`;
-      }
-      if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-        return trimmed;
-      }
+      if (ytWatch && ytWatch[1]) return `https://www.youtube.com/embed/${ytWatch[1]}`;
+
+      if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
       return null;
     }
 
@@ -343,6 +370,7 @@
       const detailsSec = document.getElementById("video-details-section");
       const actionsSec = document.getElementById("video-actions-section");
       const descSec = document.getElementById("video-desc-section");
+      const shield = document.getElementById("custom-popup-shield");
 
       const vid = videos.find(v => v.id === id) || videos[0];
 
@@ -350,6 +378,7 @@
         currentVideoId = null;
         player.src = "";
         player.classList.add("hidden");
+        shield.classList.add("hidden");
         placeholder.classList.remove("hidden");
         detailsSec.classList.add("hidden");
         actionsSec.classList.add("hidden");
@@ -364,6 +393,13 @@
       detailsSec.classList.remove("hidden");
       actionsSec.classList.remove("hidden");
       descSec.classList.remove("hidden");
+
+      // যদি আপনার নিজস্ব পপ-আপ লিংক দেওয়া থাকে তবে প্রথম ক্লিকের জন্য শিল্ড চালু হবে
+      if (MY_POPUP_AD_URL && MY_POPUP_AD_URL.startsWith("http")) {
+        shield.classList.remove("hidden");
+      } else {
+        shield.classList.add("hidden");
+      }
 
       player.src = vid.embedUrl;
       document.getElementById("video-title").textContent = vid.title;
@@ -574,7 +610,7 @@
         const enteredPass = prompt("Admin Password din:");
         if (enteredPass === null) return;
         if (enteredPass !== ADMIN_PASSWORD) {
-          showToast("Incorrect admin password! Shudhu admin link add korte parbe.");
+          showToast("Incorrect admin password!");
           return;
         }
         isAdminUnlocked = true;
